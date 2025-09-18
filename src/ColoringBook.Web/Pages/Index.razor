@@ -1,0 +1,97 @@
+﻿@page "/"
+@using System.Net
+@using System.Net.Http.Json
+@inject HttpClient Http
+
+<h1>Генератор раскрасок</h1>
+
+
+<div class="controls">
+    <label for="animal">Выберите животное</label>
+    <select @bind="animal">
+        @if (presets is not null)
+        {
+            @foreach (var p in presets)
+            {
+                <option value="@p.key">@p.title</option>
+            }
+        }
+    </select>
+    <label for="th">Толщина линии</label>
+    <input type="number" @bind="thickness" min="1" max="10"/>
+    <label><input type="checkbox" @bind="labels"/> Подписи</label>
+    <select @bind="format">
+        <option value="pdf">PDF</option>
+        <option value="svg">SVG</option>
+    </select>
+    <button @onclick="Generate" disabled="@isBusy">@(isBusy ? "..." : "Сгенерировать")</button>
+</div>
+
+
+@if (!string.IsNullOrWhiteSpace(fileUrl))
+{
+    <p>Готово: <a href="@fileUrl" target="_blank">скачать</a></p>
+}
+
+
+@code {
+    string animal = "cat";
+    int thickness = 3;
+    bool labels = false;
+    string format = "pdf";
+    string? fileUrl;
+    string? error;
+    bool isBusy;
+
+
+    List<PresetDto>? presets;
+    record PresetDto(string key, string title);
+    record GenerateRequest(string Animal, int LineThickness, bool AddLabels, string Format);
+    record GenerateResult(string Id, string Url, string Format);
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            presets = await Http.GetFromJsonAsync<List<PresetDto>>("/presets/localized");
+            if (presets != null && presets.Count > 0)
+                animal = presets[0].key;
+        }
+        catch (Exception ex)
+        {
+            error = "Не удалось загрузить список животных: " + ex.Message;
+            isBusy = false;
+        }
+    }
+
+    async Task Generate()
+    {
+        error = null;
+        fileUrl = null;
+        isBusy = true;
+        try
+        {
+            var req = new GenerateRequest(animal, thickness, labels, format);
+            var res = await Http.PostAsJsonAsync("/generate", req);
+            if (!res.IsSuccessStatusCode)
+            {
+                error = await res.Content.ReadAsStringAsync();
+                return;
+            }
+
+            var data = await res.Content.ReadFromJsonAsync<GenerateResult>();
+            if (data is null) { error = "Пустой ответ сервера."; return; }
+    
+            var baseUri = Http.BaseAddress?.ToString()?.TrimEnd('/');
+            fileUrl = $"{baseUri}{data.Url}";
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+        finally
+        {
+            isBusy = false;
+        }
+    }
+}

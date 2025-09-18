@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800">
+  <g fill="none" stroke="black" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+    <!-- уши -->
+    <path d="M260 180 L320 80 L380 180" />
+    <path d="M420 180 L480 80 L540 180" />
+    <!-- голова + щёки -->
+    <path d="M220 220
+             Q200 300 220 360
+             Q250 420 320 450
+             L480 450
+             Q550 420 580 360
+             Q600 300 580 220
+             Z" />
+    <!-- нос -->
+    <path d="M380 340 L420 340 L400 360 Z" />
+    <!-- усы -->
+    <path d="M300 360 L220 360" />
+    <path d="M300 380 L220 390" />
+    <path d="M300 340 L220 330" />
+    <path d="M500 360 L580 360" />
+    <path d="M500 380 L580 390" />
+    <path d="M500 340 L580 330" />
+  </g>
+</svg>
