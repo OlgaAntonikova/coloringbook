@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800">
+  <style>.main{fill:none;stroke:black;stroke-linecap:round;stroke-linejoin:round}.detail{fill:none;stroke:black;stroke-linecap:round;stroke-linejoin:round}</style>
+  <g class="main">
+    <!-- уши -->
+    <path d="M300 220 L340 150 L380 220"/>
+    <path d="M420 220 L460 150 L500 220"/>
+    <!-- мордочка/щёки -->
+    <path d="M260 260 Q240 320 280 360 Q330 410 400 410 Q470 410 520 360 Q560 320 540 260 Z"/>
+    <!-- носик треугольник -->
+    <path d="M385 340 L415 340 L400 360 Z"/>
+  </g>
+  <g class="detail">
+    <path d="M320 330 Q330 320 350 320"/><path d="M480 330 Q470 320 450 320"/>
+  </g>
+</svg>

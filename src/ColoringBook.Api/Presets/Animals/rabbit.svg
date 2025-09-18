@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800">
+  <style>.main{fill:none;stroke:black;stroke-linecap:round;stroke-linejoin:round}.detail{fill:none;stroke:black;stroke-linecap:round;stroke-linejoin:round}</style>
+  <g class="main">
+    <!-- уши -->
+    <path d="M330 140 Q320 70 360 70 Q400 70 390 140"/>
+    <path d="M470 140 Q480 70 440 70 Q400 70 410 140"/>
+    <!-- голова -->
+    <path d="M280 240 Q260 340 320 400 Q400 460 480 400 Q540 340 520 240 Z"/>
+  </g>
+  <g class="detail">
+    <circle cx="360" cy="300" r="6"/>
+    <circle cx="440" cy="300" r="6"/>
+    <path d="M380 330 Q400 345 420 330"/>
+    <path d="M350 390 Q400 420 450 390"/>
+  </g>
+</svg>
