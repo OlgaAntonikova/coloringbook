@@ -25,6 +25,8 @@ builder.Services.AddHealthChecks();
 // DI
 builder.Services.AddSingleton<IOutlineGenerator, SvgOutlineGenerator>();
 builder.Services.AddSingleton<IPdfExporter, QuestPdfExporter>();
+builder.Services.AddSingleton<MandalaGenerator>();
+builder.Services.AddSingleton<ColoringPageBuilder>();
 builder.Services.AddSingleton<IFileStorage>(sp =>
 	new LocalFileStorage(Path.Combine(AppContext.BaseDirectory, "files")));
 builder.Services.AddSingleton<IPresetProvider>(sp =>

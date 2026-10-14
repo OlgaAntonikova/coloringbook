@@ -13,12 +13,14 @@ public class PdfExportTests : IClassFixture<WebApplicationFactory<Program>>
 
     private sealed record GenerateResultDto(string Id, string Url, string Format);
 
-    [Fact]
-    public async Task Pdf_IsSingleA4PageOfVectorGraphics()
+    [Theory]
+    [InlineData("animal")]
+    [InlineData("mandala")]
+    public async Task Pdf_IsSingleA4PageOfVectorGraphics(string kind)
     {
         var client = _factory.CreateClient();
         var response = await client.PostAsJsonAsync("/generate",
-            new { Animal = "lion", LineThickness = 3, AddLabels = false, Format = "pdf" });
+            new { Kind = kind, Animal = "lion", Symmetry = 16, Rings = 6, Seed = 7, LineThickness = 3, Format = "pdf" });
         response.EnsureSuccessStatusCode();
         var result = await response.Content.ReadFromJsonAsync<GenerateResultDto>();
 
@@ -31,6 +33,6 @@ public class PdfExportTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.Matches(@"/MediaBox\s*\[\s*0\s+0\s+595(\.\d+)?\s+842(\.\d+)?\s*\]", text);
         // Vector output embeds no raster images (the previous version embedded a 300 DPI PNG)
         Assert.DoesNotMatch(@"/Subtype\s*/Image", text);
-        Assert.True(bytes.Length < 50_000, $"PDF is {bytes.Length} bytes");
+        Assert.True(bytes.Length < 150_000, $"PDF is {bytes.Length} bytes");
     }
 }

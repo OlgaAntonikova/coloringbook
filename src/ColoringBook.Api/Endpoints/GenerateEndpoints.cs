@@ -15,41 +15,41 @@ namespace ColoringBook.Api.Endpoints
                 Results.Ok(presets.PresetsList()
                     .Select(key => new { key, title = char.ToUpperInvariant(key[0]) + key[1..] })));
 
-            app.MapPost("/generate", async (DTOs.GenerateRequest request, IOutlineGenerator outlineGen, IPdfExporter pdf, IFileStorage storage) =>
-				{
-                    try
-                    {
-                        // 1) Build the SVG outline for the animal
-                        var svg = outlineGen.BuildSvg(request.Animal, request.LineThickness, request.AddLabels);
+            app.MapPost("/generate", async (DTOs.GenerateRequest request, ColoringPageBuilder builder,
+                IPdfExporter pdf, IFileStorage storage, ILogger<ColoringPageBuilder> logger) =>
+            {
+                ColoringPage page;
+                try
+                {
+                    page = builder.Build(request);
+                }
+                catch (ArgumentException ex)
+                {
+                    return Results.Problem(ex.Message, statusCode: StatusCodes.Status400BadRequest);
+                }
 
+                try
+                {
+                    var id = Guid.NewGuid().ToString("N");
+                    var ext = request.Format.Equals("svg", StringComparison.OrdinalIgnoreCase) ? "svg" : "pdf";
+                    var filePath = storage.GetPath(id, ext);
 
-                        // 2) Export it
-                        string id = Guid.NewGuid().ToString("N");
-                        string ext = request.Format.ToLowerInvariant() == "svg" ? "svg" : "pdf";
-                        string filePath = storage.GetPath(id, ext);
+                    if (ext == "svg")
+                        await File.WriteAllTextAsync(filePath, page.Svg);
+                    else
+                        await pdf.ExportSvgToPdfAsync(page.Svg, filePath);
 
-
-                        if (ext == "svg")
-                        {
-                            await File.WriteAllTextAsync(filePath, svg);
-                        }
-                        else
-                        {
-                            await pdf.ExportSvgToPdfAsync(svg, filePath);
-                        }
-
-
-                        string url = $"/files/{id}.{ext}";
-                        return Results.Ok(new DTOs.GenerateResult(id, url, ext));
-                    }
-                    catch (Exception ex)
-                    {
-                        return Results.Problem(ex.Message, statusCode: 500);
-                    }
-                })
-				.WithOpenApi()
-				.Produces<DTOs.GenerateResult>(StatusCodes.Status200OK);
-
+                    return Results.Ok(new DTOs.GenerateResult(id, $"/files/{id}.{ext}", ext, page.Seed));
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Export failed for {Kind}", request.Kind);
+                    return Results.Problem("Could not create the file.", statusCode: StatusCodes.Status500InternalServerError);
+                }
+            })
+            .WithOpenApi()
+            .Produces<DTOs.GenerateResult>(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status400BadRequest);
 
 			return app;
 		}
