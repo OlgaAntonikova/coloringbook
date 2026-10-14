@@ -1,97 +1,208 @@
-﻿@page "/"
-@using System.Net
+@page "/"
 @using System.Net.Http.Json
+@implements IDisposable
 @inject HttpClient Http
 
-<h1>Coloring page generator</h1>
+<PageTitle>Coloring Book</PageTitle>
 
+<div class="layout">
+    <section class="panel">
+        <div class="tabs" role="tablist">
+            <button role="tab" class="@(kind == "mandala" ? "active" : "")" @onclick='() => SetKind("mandala")'>Mandala</button>
+            <button role="tab" class="@(kind == "animal" ? "active" : "")" @onclick='() => SetKind("animal")'>Animal</button>
+        </div>
 
-<div class="controls">
-    <label for="animal">Animal</label>
-    <select @bind="animal">
-        @if (presets is not null)
+        @if (kind == "animal")
         {
-            @foreach (var p in presets)
-            {
-                <option value="@p.key">@p.title</option>
-            }
+            <label class="field">
+                <span>Animal</span>
+                <select @onchange="e => Change(() => animal = e.Value?.ToString() ?? animal)">
+                    @foreach (var p in presets)
+                    {
+                        <option value="@p.Key" selected="@(p.Key == animal)">@p.Title</option>
+                    }
+                </select>
+            </label>
+            <label class="check">
+                <input type="checkbox" checked="@addLabel" @onchange="e => Change(() => addLabel = e.Value is true)" />
+                <span>Print the name under the picture</span>
+            </label>
         }
-    </select>
-    <label for="th">Line thickness</label>
-    <input type="number" @bind="thickness" min="1" max="10"/>
-    <label><input type="checkbox" @bind="labels"/> Label</label>
-    <select @bind="format">
-        <option value="pdf">PDF</option>
-        <option value="svg">SVG</option>
-    </select>
-    <button @onclick="Generate" disabled="@isBusy">@(isBusy ? "..." : "Generate")</button>
+        else
+        {
+            <label class="field">
+                <span>Symmetry <b>@symmetry</b></span>
+                <input type="range" min="4" max="24" value="@symmetry"
+                       @oninput="e => Change(() => symmetry = int.Parse(e.Value!.ToString()!))" />
+            </label>
+            <label class="field">
+                <span>Rings <b>@rings</b></span>
+                <input type="range" min="2" max="8" value="@rings"
+                       @oninput="e => Change(() => rings = int.Parse(e.Value!.ToString()!))" />
+            </label>
+            <label class="field">
+                <span>Seed</span>
+                <div class="seed">
+                    <input type="number" min="1" value="@seed"
+                           @onchange="e => Change(() => seed = int.TryParse(e.Value?.ToString(), out var s) ? s : seed)" />
+                    <button class="secondary" title="New random mandala" @onclick="NewSeed">Shuffle</button>
+                </div>
+            </label>
+        }
+
+        <label class="field">
+            <span>Line thickness <b>@thickness</b></span>
+            <input type="range" min="1" max="10" value="@thickness"
+                   @oninput="e => Change(() => thickness = int.Parse(e.Value!.ToString()!))" />
+        </label>
+
+        <div class="actions">
+            <button class="primary" disabled="@busy" @onclick='() => Download("pdf")'>Download PDF</button>
+            <button class="secondary" disabled="@busy" @onclick='() => Download("svg")'>Download SVG</button>
+        </div>
+
+        @if (error is not null)
+        {
+            <p class="error" role="alert">@error</p>
+        }
+    </section>
+
+    <section class="preview">
+        @if (previewSrc is null)
+        {
+            <div class="placeholder">Loading preview…</div>
+        }
+        else
+        {
+            <img src="@previewSrc" alt="Preview of the coloring page" />
+        }
+    </section>
 </div>
 
-
-@if (!string.IsNullOrWhiteSpace(fileUrl))
-{
-    <p>Ready: <a href="@fileUrl" target="_blank">download</a></p>
-}
-
-
 @code {
-    string animal = "cat";
-    int thickness = 3;
-    bool labels = false;
-    string format = "pdf";
-    string? fileUrl;
-    string? error;
-    bool isBusy;
+    private sealed record PresetDto(string Key, string Title);
+    private sealed record PageRequest(string Kind, string? Animal, int LineThickness, bool AddLabels, int Symmetry, int Rings, int? Seed, string Format);
+    private sealed record GenerateResult(string Id, string Url, string Format, int? Seed);
 
+    private List<PresetDto> presets = new();
+    private string kind = "mandala";
+    private string animal = "cat";
+    private bool addLabel;
+    private int symmetry = 12;
+    private int rings = 5;
+    private int seed = Random.Shared.Next(1, 1_000_000);
+    private int thickness = 3;
 
-    List<PresetDto>? presets;
-    record PresetDto(string key, string title);
-    record GenerateRequest(string Animal, int LineThickness, bool AddLabels, string Format);
-    record GenerateResult(string Id, string Url, string Format);
+    private string? previewSrc;
+    private string? error;
+    private bool busy;
+    private CancellationTokenSource? pending;
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            presets = await Http.GetFromJsonAsync<List<PresetDto>>("/presets");
-            if (presets != null && presets.Count > 0)
-                animal = presets[0].key;
+            presets = await Http.GetFromJsonAsync<List<PresetDto>>("presets") ?? new();
+            if (presets.Count > 0)
+                animal = presets[0].Key;
         }
         catch (Exception ex)
         {
             error = "Could not load the animal list: " + ex.Message;
-            isBusy = false;
         }
+
+        await RefreshPreview(CancellationToken.None);
     }
 
-    async Task Generate()
+    private PageRequest CurrentRequest(string format) =>
+        new(kind, animal, thickness, addLabel, symmetry, rings, kind == "mandala" ? seed : null, format);
+
+    private void SetKind(string value) => Change(() => kind = value);
+
+    private void NewSeed() => Change(() => seed = Random.Shared.Next(1, 1_000_000));
+
+    /// <summary>Applies a setting and refreshes the preview after a short pause, so dragging a slider sends few requests.</summary>
+    private void Change(Action apply)
     {
-        error = null;
-        fileUrl = null;
-        isBusy = true;
+        apply();
+        pending?.Cancel();
+        pending = new CancellationTokenSource();
+        var token = pending.Token;
+
+        _ = Task.Delay(200, token).ContinueWith(async t =>
+        {
+            if (t.IsCanceled) return;
+            await InvokeAsync(() => RefreshPreview(token));
+        }, TaskScheduler.Default);
+    }
+
+    private async Task RefreshPreview(CancellationToken token)
+    {
         try
         {
-            var req = new GenerateRequest(animal, thickness, labels, format);
-            var res = await Http.PostAsJsonAsync("/generate", req);
-            if (!res.IsSuccessStatusCode)
+            var response = await Http.PostAsJsonAsync("preview", CurrentRequest("svg"), token);
+            if (!response.IsSuccessStatusCode)
             {
-                error = await res.Content.ReadAsStringAsync();
+                error = await ProblemText(response);
+                StateHasChanged();
                 return;
             }
 
-            var data = await res.Content.ReadFromJsonAsync<GenerateResult>();
-            if (data is null) { error = "Empty response from the server."; return; }
-    
-            var baseUri = Http.BaseAddress?.ToString()?.TrimEnd('/');
-            fileUrl = $"{baseUri}{data.Url}";
+            var svg = await response.Content.ReadAsByteArrayAsync(token);
+            previewSrc = "data:image/svg+xml;base64," + Convert.ToBase64String(svg);
+            error = null;
+            StateHasChanged();
+        }
+        catch (OperationCanceledException)
+        {
+            // A newer change replaced this request
         }
         catch (Exception ex)
         {
-            error = ex.Message;
+            error = "Preview failed: " + ex.Message;
+            StateHasChanged();
+        }
+    }
+
+    private async Task Download(string format)
+    {
+        busy = true;
+        error = null;
+        try
+        {
+            var response = await Http.PostAsJsonAsync("generate", CurrentRequest(format));
+            if (!response.IsSuccessStatusCode)
+            {
+                error = await ProblemText(response);
+                return;
+            }
+
+            var result = await response.Content.ReadFromJsonAsync<GenerateResult>();
+            if (result is not null)
+                await JS.InvokeVoidAsync("coloringBook.download", result.Url.TrimStart('/'), FileName(format));
+        }
+        catch (Exception ex)
+        {
+            error = "Download failed: " + ex.Message;
         }
         finally
         {
-            isBusy = false;
+            busy = false;
         }
     }
+
+    private static async Task<string> ProblemText(HttpResponseMessage response)
+    {
+        var problem = await response.Content.ReadFromJsonAsync<ProblemDto>();
+        return problem?.Detail ?? $"Request failed ({(int)response.StatusCode}).";
+    }
+
+    private sealed record ProblemDto(string? Title, string? Detail);
+
+    private string FileName(string format) =>
+        kind == "mandala" ? $"mandala-{symmetry}x{rings}-{seed}.{format}" : $"{animal}.{format}";
+
+    [Inject] private IJSRuntime JS { get; set; } = default!;
+
+    public void Dispose() => pending?.Cancel();
 }
