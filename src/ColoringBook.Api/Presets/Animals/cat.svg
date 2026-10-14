@@ -1,24 +1,21 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800">
   <g fill="none" stroke="black" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
-    <!-- ears -->
-    <path d="M260 180 L320 80 L380 180" />
-    <path d="M420 180 L480 80 L540 180" />
-    <!-- head and cheeks -->
-    <path d="M220 220
-             Q200 300 220 360
-             Q250 420 320 450
-             L480 450
-             Q550 420 580 360
-             Q600 300 580 220
-             Z" />
+    <!-- head and ears -->
+    <path d="M 190 380 L 215 170 L 330 250 Q 400 232 470 250 L 585 170 L 610 380 Q 640 560 400 640 Q 160 560 190 380 Z" />
+    <!-- inner ears -->
+    <path d="M 232 212 L 296 256 L 222 318 Z" />
+    <path d="M 568 212 L 504 256 L 578 318 Z" />
+    <!-- eyes -->
+    <path d="M 300 390 Q 340 350 380 390 Q 340 428 300 390 Z" />
+    <path d="M 500 390 Q 460 350 420 390 Q 460 428 500 390 Z" />
+    <ellipse cx="340" cy="390" rx="9" ry="22" />
+    <ellipse cx="460" cy="390" rx="9" ry="22" />
     <!-- nose -->
-    <path d="M380 340 L420 340 L400 360 Z" />
+    <path d="M 380 455 L 420 455 L 400 478 Z" />
+    <!-- mouth -->
+    <path d="M 400 478 L 400 500 M 400 500 Q 375 525 350 505 M 400 500 Q 425 525 450 505" />
     <!-- whiskers -->
-    <path d="M300 360 L220 360" />
-    <path d="M300 380 L220 390" />
-    <path d="M300 340 L220 330" />
-    <path d="M500 360 L580 360" />
-    <path d="M500 380 L580 390" />
-    <path d="M500 340 L580 330" />
+    <path d="M 330 470 L 200 440 M 330 485 L 195 490 M 330 500 L 205 540" />
+    <path d="M 470 470 L 600 440 M 470 485 L 605 490 M 470 500 L 595 540" />
   </g>
 </svg>
