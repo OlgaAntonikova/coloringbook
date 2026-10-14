@@ -55,3 +55,6 @@ app.MapGenerateEndpoints();
 app.MapFilesEndpoints();
 
 app.Run();
+
+// Lets integration tests start the app with WebApplicationFactory<Program>
+public partial class Program;
