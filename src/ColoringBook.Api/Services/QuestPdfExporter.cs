@@ -13,11 +13,11 @@ namespace ColoringBook.Api.Services
 		
 		public async Task ExportSvgToPdfAsync(string svg, string outputPath)
 		{
-            // 1) Рендерим SVG в PNG (A4, ~300 DPI)
+            // 1) Render the SVG to PNG (A4, ~300 DPI)
             var pngBytes = RenderSvgToPng(svg, 2480, 3508); // A4 300dpi
             var img = Image.FromBinaryData(pngBytes);
 
-            // 2) Собираем PDF и вставляем PNG на страницу
+            // 2) Build the PDF with the PNG on one page
             var doc = Document.Create(container =>
             {
                 container.Page(page =>

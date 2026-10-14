@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800">
+  <g fill="none" stroke="black" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+    <!-- head -->
+    <path d="M360 214 Q340 150 400 120 Q460 150 440 214" />
+    <circle cx="380" cy="160" r="6" />
+    <circle cx="420" cy="160" r="6" />
+    <path d="M385 190 Q400 200 415 190" />
+    <!-- legs -->
+    <path d="M248 300 Q180 250 165 300 Q170 345 226 350" />
+    <path d="M552 300 Q620 250 635 300 Q630 345 574 350" />
+    <path d="M229 500 Q170 520 180 575 Q215 605 251 545" />
+    <path d="M571 500 Q630 520 620 575 Q585 605 549 545" />
+    <!-- tail -->
+    <path d="M385 629 L400 680 L415 629" />
+    <!-- shell -->
+    <ellipse cx="400" cy="420" rx="185" ry="210" />
+    <!-- shell plates -->
+    <path d="M400 330 L455 365 L455 435 L400 470 L345 435 L345 365 Z" />
+    <path d="M400 330 L400 210" />
+    <path d="M455 365 L552 300" />
+    <path d="M455 435 L552 540" />
+    <path d="M400 470 L400 630" />
+    <path d="M345 435 L248 540" />
+    <path d="M345 365 L248 300" />
+  </g>
+</svg>
