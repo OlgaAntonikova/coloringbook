@@ -1,57 +1,51 @@
 using ColoringBook.Api.Endpoints;
 using ColoringBook.Api.Services;
 using ColoringBook.Api.Storage;
-using Serilog;
 using QuestPDF.Infrastructure;
-QuestPDF.Settings.License = LicenseType.Community;
+using Serilog;
 
+QuestPDF.Settings.License = LicenseType.Community;
 
 var builder = WebApplication.CreateBuilder(args);
 
-
-// Serilog
 builder.Host.UseSerilog((ctx, lc) => lc
 	.ReadFrom.Configuration(ctx.Configuration)
 	.WriteTo.Console());
 
-
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-
-
 builder.Services.AddHealthChecks();
 
-
-// DI
 builder.Services.AddSingleton<IOutlineGenerator, SvgOutlineGenerator>();
 builder.Services.AddSingleton<IPdfExporter, QuestPdfExporter>();
-builder.Services.AddSingleton<IFileStorage>(sp =>
-	new LocalFileStorage(Path.Combine(AppContext.BaseDirectory, "files")));
-builder.Services.AddSingleton<IPresetProvider>(sp =>
-    new FilePresetProvider(builder.Environment.ContentRootPath));
+builder.Services.AddSingleton<MandalaGenerator>();
+builder.Services.AddSingleton<ColoringPageBuilder>();
+builder.Services.AddSingleton<IPresetProvider>(_ => new FilePresetProvider(builder.Environment.ContentRootPath));
 
-// CORS 
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("web",
-        p => p.WithOrigins("https://localhost:7280", "http://localhost:7280")
-            .AllowAnyHeader()
-            .AllowAnyMethod());
-});
-
+// Generated files; Storage:Path lets a container keep them on a volume
+var storagePath = builder.Configuration["Storage:Path"] ?? Path.Combine(AppContext.BaseDirectory, "files");
+builder.Services.AddSingleton<IFileStorage>(_ => new LocalFileStorage(storagePath));
 
 var app = builder.Build();
 
 app.UseSerilogRequestLogging();
-app.UseSwagger();
-app.UseSwaggerUI();
+
+if (app.Environment.IsDevelopment())
+{
+	app.UseSwagger();
+	app.UseSwaggerUI();
+}
+
+// The Blazor WebAssembly client is served by this app, so UI and API share one origin
+app.UseBlazorFrameworkFiles();
+app.UseStaticFiles();
 
 app.MapHealthChecks("/health");
-
-app.UseCors("web");
-
-// Endpoints
 app.MapGenerateEndpoints();
 app.MapFilesEndpoints();
+app.MapFallbackToFile("index.html");
 
 app.Run();
+
+// Lets integration tests start the app with WebApplicationFactory<Program>
+public partial class Program;

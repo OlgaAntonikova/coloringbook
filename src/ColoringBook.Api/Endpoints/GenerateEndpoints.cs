@@ -10,58 +10,64 @@ namespace ColoringBook.Api.Endpoints
 	{
 		public static IEndpointRouteBuilder MapGenerateEndpoints(this IEndpointRouteBuilder app)
 		{
-            // app.MapGet("/presets", (IPresetProvider presets) => Results.Ok(presets.PresetsList()));
+            // Available animals: one SVG file per animal in Presets/Animals
+            app.MapGet("/presets", (IPresetProvider presets) =>
+                Results.Ok(presets.PresetsList()
+                    .Select(key => new { key, title = char.ToUpperInvariant(key[0]) + key[1..] })));
 
-            app.MapGet("/presets/localized", () =>
+            // Live preview for the UI: the SVG itself, nothing is stored. The seed used comes back in X-Seed.
+            app.MapPost("/preview", (DTOs.GenerateRequest request, ColoringPageBuilder builder, HttpResponse response) =>
             {
-                var list = new[]
+                try
                 {
-                    new { key="cat",      title="Кошка" },
-                    new { key="dog",      title="Собака" },
-                    new { key="rabbit",   title="Заяц" },
-                    new { key="lion",     title="Лев" },
-                    new { key="fox",      title="Лиса" },
-                    new { key="bear",     title="Медведь" },
-                    new { key="turtle",   title="Черепаха" },
-                };
-                return Results.Ok(list);
-            });
+                    var page = builder.Build(request);
+                    if (page.Seed is int seed)
+                        response.Headers["X-Seed"] = seed.ToString();
+                    return Results.Content(page.Svg, "image/svg+xml");
+                }
+                catch (ArgumentException ex)
+                {
+                    return Results.Problem(ex.Message, statusCode: StatusCodes.Status400BadRequest);
+                }
+            })
+            .WithOpenApi()
+            .ProducesProblem(StatusCodes.Status400BadRequest);
 
-            app.MapPost("/generate", async (DTOs.GenerateRequest request, IOutlineGenerator outlineGen, IPdfExporter pdf, IFileStorage storage) =>
-				{
-                    try
-                    {
-                        // 1) генерим SVG контур по животному
-                        var svg = outlineGen.BuildSvg(request.Animal, request.LineThickness, request.AddLabels);
+            app.MapPost("/generate", async (DTOs.GenerateRequest request, ColoringPageBuilder builder,
+                IPdfExporter pdf, IFileStorage storage, ILogger<ColoringPageBuilder> logger) =>
+            {
+                ColoringPage page;
+                try
+                {
+                    page = builder.Build(request);
+                }
+                catch (ArgumentException ex)
+                {
+                    return Results.Problem(ex.Message, statusCode: StatusCodes.Status400BadRequest);
+                }
 
+                try
+                {
+                    var id = Guid.NewGuid().ToString("N");
+                    var ext = request.Format.Equals("svg", StringComparison.OrdinalIgnoreCase) ? "svg" : "pdf";
+                    var filePath = storage.GetPath(id, ext);
 
-                        // 2) экспортируем
-                        string id = Guid.NewGuid().ToString("N");
-                        string ext = request.Format.ToLowerInvariant() == "svg" ? "svg" : "pdf";
-                        string filePath = storage.GetPath(id, ext);
+                    if (ext == "svg")
+                        await File.WriteAllTextAsync(filePath, page.Svg);
+                    else
+                        await pdf.ExportSvgToPdfAsync(page.Svg, filePath);
 
-
-                        if (ext == "svg")
-                        {
-                            await File.WriteAllTextAsync(filePath, svg);
-                        }
-                        else
-                        {
-                            await pdf.ExportSvgToPdfAsync(svg, filePath);
-                        }
-
-
-                        string url = $"/files/{id}.{ext}";
-                        return Results.Ok(new DTOs.GenerateResult(id, url, ext));
-                    }
-                    catch (Exception ex)
-                    {
-                        return Results.Problem(ex.Message, statusCode: 500);
-                    }
-                })
-				.WithOpenApi()
-				.Produces<DTOs.GenerateResult>(StatusCodes.Status200OK);
-
+                    return Results.Ok(new DTOs.GenerateResult(id, $"/files/{id}.{ext}", ext, page.Seed));
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Export failed for {Kind}", request.Kind);
+                    return Results.Problem("Could not create the file.", statusCode: StatusCodes.Status500InternalServerError);
+                }
+            })
+            .WithOpenApi()
+            .Produces<DTOs.GenerateResult>(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status400BadRequest);
 
 			return app;
 		}

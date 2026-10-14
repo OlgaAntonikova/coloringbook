@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore
+        run: dotnet restore ColoringBook.sln
+
+      - name: Build
+        run: dotnet build ColoringBook.sln --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test ColoringBook.sln --configuration Release --no-build --verbosity normal
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build image
+        run: docker build -t coloringbook .
+
+      - name: Smoke test
+        run: |
+          docker run -d --name app -p 8080:8080 coloringbook
+          for i in $(seq 1 30); do curl -fs http://localhost:8080/health && break; sleep 1; done
+          curl -fs -X POST http://localhost:8080/preview -H 'Content-Type: application/json' \
+            -d '{"Kind":"mandala","Symmetry":12,"Rings":5,"Seed":1}' | grep -q '<svg'
+          curl -fs -X POST http://localhost:8080/generate -H 'Content-Type: application/json' \
+            -d '{"Kind":"animal","Animal":"cat","Format":"pdf"}' | grep -q '"url"'
+          curl -fs http://localhost:8080/ | grep -q '<title>Coloring Book</title>'
+
+      - name: Container logs
+        if: failure()
+        run: docker logs app

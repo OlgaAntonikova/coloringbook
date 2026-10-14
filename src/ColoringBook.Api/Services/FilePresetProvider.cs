@@ -17,17 +17,7 @@ namespace ColoringBook.Api.Services
         {
             if (!KeyRegex.IsMatch(key)) throw new ArgumentException("Invalid preset key", nameof(key));
             
-            var normalized = key.ToLowerInvariant() switch
-            {
-                "кот" or "кошка" => "cat",
-                "собака" or "пёс" or "пес" => "dog",
-                "заяц" or "кролик" => "rabbit",
-                "лев" => "lion",
-                "лиса" => "fox",
-                "медведь" or "бурый медведь" => "bear",
-                "черепаха" => "turtle",
-                _ => key.ToLowerInvariant()
-            };
+            var normalized = key.ToLowerInvariant();
 
             var path = Path.Combine(_root, $"{normalized}.svg");
             if (!File.Exists(path))

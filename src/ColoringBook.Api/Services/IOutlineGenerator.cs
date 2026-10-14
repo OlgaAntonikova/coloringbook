@@ -3,7 +3,7 @@
 	public interface IOutlineGenerator
 	{
 		/// <summary>
-		/// Возвращает SVG c контуром животного.
+		/// Returns the animal outline as SVG, restyled for coloring.
 		/// </summary>
 		string BuildSvg(string animal, int lineThickness, bool addLabels);
 	}

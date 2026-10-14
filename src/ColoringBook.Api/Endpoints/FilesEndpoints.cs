@@ -10,7 +10,7 @@ namespace ColoringBook.Api.Endpoints
 			app.MapGet("/files/{file}", (string file, IFileStorage storage) =>
 			{
 				var full = storage.Resolve(file);
-				if (!System.IO.File.Exists(full)) return Results.NotFound();
+				if (full == null || !System.IO.File.Exists(full)) return Results.NotFound();
 
 
 				var provider = new FileExtensionContentTypeProvider();

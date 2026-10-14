@@ -10,17 +10,17 @@ namespace ColoringBook.Api.Services
 
         public string BuildSvg(string animal, int lineThickness, bool addLabels)
 		{
-            // исходный SVG пресета
+            // Source SVG of the preset
             var raw = _presets.GetSvg(animal);
 
-            // атрибуты/стили
+            // Normalize attributes and styles
             var doc = XDocument.Parse(raw);
 
             var svg = doc.Root ?? throw new InvalidOperationException("Invalid SVG");
             if (svg.Attribute("viewBox") == null)
                 svg.SetAttributeValue("viewBox", "0 0 800 800");
 
-            // stroke для всех базовых фигур
+            // Outline every basic shape with the requested stroke
             foreach (var el in svg.Descendants())
             {
                 if (el.Name.LocalName is "path" or "circle" or "rect" or "ellipse" or "line" or "polyline" or "polygon")
@@ -33,7 +33,7 @@ namespace ColoringBook.Api.Services
                 }
             }
 
-            // подпись
+            // Optional label under the picture
             if (addLabels)
             {
                 var label = new XElement(svg.GetDefaultNamespace() + "text",
