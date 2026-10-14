@@ -1,16 +1,25 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800">
-  <style>.main{fill:none;stroke:black;stroke-linecap:round;stroke-linejoin:round}.detail{fill:none;stroke:black;stroke-linecap:round;stroke-linejoin:round}</style>
-  <g class="main">
-    <!-- ears -->
-    <path d="M330 140 Q320 70 360 70 Q400 70 390 140"/>
-    <path d="M470 140 Q480 70 440 70 Q400 70 410 140"/>
+  <g fill="none" stroke="black" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
     <!-- head -->
-    <path d="M280 240 Q260 340 320 400 Q400 460 480 400 Q540 340 520 240 Z"/>
-  </g>
-  <g class="detail">
-    <circle cx="360" cy="300" r="6"/>
-    <circle cx="440" cy="300" r="6"/>
-    <path d="M380 330 Q400 345 420 330"/>
-    <path d="M350 390 Q400 420 450 390"/>
+    <ellipse cx="400" cy="470" rx="190" ry="170" />
+    <!-- ears -->
+    <path d="M 335 311 C 270 200 255 75 312 66 C 370 58 388 200 375 302" />
+    <path d="M 465 311 C 530 200 545 75 488 66 C 430 58 412 200 425 302" />
+    <!-- inner ears -->
+    <path d="M 337 282 C 300 200 292 112 316 102 C 345 96 360 200 356 288" />
+    <path d="M 463 282 C 500 200 508 112 484 102 C 455 96 440 200 444 288" />
+    <ellipse cx="330" cy="450" rx="14" ry="18" />
+    <ellipse cx="470" cy="450" rx="14" ry="18" />
+    <circle cx="334" cy="444" r="5" />
+    <circle cx="474" cy="444" r="5" />
+    <ellipse cx="285" cy="515" rx="30" ry="18" />
+    <ellipse cx="515" cy="515" rx="30" ry="18" />
+    <!-- nose -->
+    <path d="M 385 505 Q 400 497 415 505 L 400 520 Z" />
+    <!-- mouth -->
+    <path d="M 400 520 L 400 540 M 400 540 Q 380 560 360 548 M 400 540 Q 420 560 440 548" />
+    <!-- whiskers -->
+    <path d="M 350 525 L 240 505 M 350 537 L 245 560" />
+    <path d="M 450 525 L 560 505 M 450 537 L 555 560" />
   </g>
 </svg>

@@ -1,15 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800">
-  <style>.main{fill:none;stroke:black;stroke-linecap:round;stroke-linejoin:round}.detail{fill:none;stroke:black;stroke-linecap:round;stroke-linejoin:round}</style>
-  <g class="main">
-    <!-- ears -->
-    <path d="M300 220 L340 150 L380 220"/>
-    <path d="M420 220 L460 150 L500 220"/>
-    <!-- muzzle and cheeks -->
-    <path d="M260 260 Q240 320 280 360 Q330 410 400 410 Q470 410 520 360 Q560 320 540 260 Z"/>
-    <!-- triangle nose -->
-    <path d="M385 340 L415 340 L400 360 Z"/>
-  </g>
-  <g class="detail">
-    <path d="M320 330 Q330 320 350 320"/><path d="M480 330 Q470 320 450 320"/>
+  <g fill="none" stroke="black" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+    <!-- head and ears -->
+    <path d="M 400 650 L 220 470 Q 170 400 185 330 L 205 160 L 320 260 Q 400 240 480 260 L 595 160 L 615 330 Q 630 400 580 470 Z" />
+    <!-- inner ears -->
+    <path d="M 212 200 L 290 266 L 206 305 Z" />
+    <path d="M 588 200 L 510 266 L 594 305 Z" />
+    <!-- white cheeks -->
+    <path d="M 220 470 Q 300 425 335 470 Q 365 525 400 545 Q 435 525 465 470 Q 500 425 580 470" />
+    <!-- eyes -->
+    <path d="M 300 380 Q 338 348 378 385 Q 336 402 300 380 Z" />
+    <path d="M 500 380 Q 462 348 422 385 Q 464 402 500 380 Z" />
+    <circle cx="342" cy="380" r="9" />
+    <circle cx="458" cy="380" r="9" />
+    <!-- nose -->
+    <path d="M 378 610 Q 400 598 422 610 Q 416 634 400 637 Q 384 634 378 610 Z" />
   </g>
 </svg>
