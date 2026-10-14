@@ -15,6 +15,24 @@ namespace ColoringBook.Api.Endpoints
                 Results.Ok(presets.PresetsList()
                     .Select(key => new { key, title = char.ToUpperInvariant(key[0]) + key[1..] })));
 
+            // Live preview for the UI: the SVG itself, nothing is stored. The seed used comes back in X-Seed.
+            app.MapPost("/preview", (DTOs.GenerateRequest request, ColoringPageBuilder builder, HttpResponse response) =>
+            {
+                try
+                {
+                    var page = builder.Build(request);
+                    if (page.Seed is int seed)
+                        response.Headers["X-Seed"] = seed.ToString();
+                    return Results.Content(page.Svg, "image/svg+xml");
+                }
+                catch (ArgumentException ex)
+                {
+                    return Results.Problem(ex.Message, statusCode: StatusCodes.Status400BadRequest);
+                }
+            })
+            .WithOpenApi()
+            .ProducesProblem(StatusCodes.Status400BadRequest);
+
             app.MapPost("/generate", async (DTOs.GenerateRequest request, ColoringPageBuilder builder,
                 IPdfExporter pdf, IFileStorage storage, ILogger<ColoringPageBuilder> logger) =>
             {

@@ -2,10 +2,12 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ColoringBook.Contracts\ColoringBook.Contracts.csproj" />
+    <ProjectReference Include="..\ColoringBook.Web\ColoringBook.Web.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="8.0.32" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.32" />
     <PackageReference Include="QuestPDF" Version="2025.7.1" />
     <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
     <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />

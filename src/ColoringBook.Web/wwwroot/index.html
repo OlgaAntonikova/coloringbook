@@ -1,12 +1,11 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ColoringBook.Web</title>
+    <title>Coloring Book</title>
     <base href="/" />
-    <link rel="stylesheet" href="css/bootstrap/bootstrap.min.css" />
     <link rel="stylesheet" href="css/app.css" />
     <link rel="icon" type="image/png" href="favicon.png" />
     <link href="ColoringBook.Web.styles.css" rel="stylesheet" />
@@ -27,6 +26,19 @@
         <a class="dismiss">🗙</a>
     </div>
     <script src="_framework/blazor.webassembly.js"></script>
+    <script>
+        // Saves a generated file instead of navigating away from the app
+        window.coloringBook = {
+            download: (url, fileName) => {
+                const link = document.createElement("a");
+                link.href = url;
+                link.download = fileName;
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+            }
+        };
+    </script>
 </body>
 
 </html>
