@@ -1,0 +1,6 @@
+{
+  "version": 1,
+  "build": ["dotnet", "build", "ColoringBook.sln"],
+  "test": ["dotnet", "test", "ColoringBook.sln"],
+  "sourceExtensions": [".cs", ".razor", ".css", ".svg"]
+}
