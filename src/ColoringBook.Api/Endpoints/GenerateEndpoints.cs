@@ -10,32 +10,20 @@ namespace ColoringBook.Api.Endpoints
 	{
 		public static IEndpointRouteBuilder MapGenerateEndpoints(this IEndpointRouteBuilder app)
 		{
-            // app.MapGet("/presets", (IPresetProvider presets) => Results.Ok(presets.PresetsList()));
-
-            app.MapGet("/presets/localized", () =>
-            {
-                var list = new[]
-                {
-                    new { key="cat",      title="Кошка" },
-                    new { key="dog",      title="Собака" },
-                    new { key="rabbit",   title="Заяц" },
-                    new { key="lion",     title="Лев" },
-                    new { key="fox",      title="Лиса" },
-                    new { key="bear",     title="Медведь" },
-                    new { key="turtle",   title="Черепаха" },
-                };
-                return Results.Ok(list);
-            });
+            // Available animals: one SVG file per animal in Presets/Animals
+            app.MapGet("/presets", (IPresetProvider presets) =>
+                Results.Ok(presets.PresetsList()
+                    .Select(key => new { key, title = char.ToUpperInvariant(key[0]) + key[1..] })));
 
             app.MapPost("/generate", async (DTOs.GenerateRequest request, IOutlineGenerator outlineGen, IPdfExporter pdf, IFileStorage storage) =>
 				{
                     try
                     {
-                        // 1) генерим SVG контур по животному
+                        // 1) Build the SVG outline for the animal
                         var svg = outlineGen.BuildSvg(request.Animal, request.LineThickness, request.AddLabels);
 
 
-                        // 2) экспортируем
+                        // 2) Export it
                         string id = Guid.NewGuid().ToString("N");
                         string ext = request.Format.ToLowerInvariant() == "svg" ? "svg" : "pdf";
                         string filePath = storage.GetPath(id, ext);
